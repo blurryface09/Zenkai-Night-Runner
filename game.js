@@ -1,10 +1,8 @@
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
-// Use screen dimensions — works correctly on mobile Safari
-const W              = window.screen.width  * window.devicePixelRatio > 1200
-                         ? window.innerWidth : window.screen.width;
-const H              = window.screen.height * window.devicePixelRatio > 900
-                         ? window.innerHeight : window.screen.height;
-const GROUND_Y       = H - 100;
+// Detect actual available screen real estate on any device
+const W        = window.innerWidth  || document.documentElement.clientWidth;
+const H        = window.innerHeight || document.documentElement.clientHeight;
+const GROUND_Y = H - 100;
 const PLAYER_SCALE   = 0.42;
 const ENEMY_SCALE    = 0.42;
 const BOSS_SCALE     = 0.58;
@@ -126,7 +124,7 @@ class TitleScene extends Phaser.Scene {
             {label:'HARD',  color:'#ff4444',diff:'hard'},
         ];
         diffs.forEach((d,i)=>{
-            const btn=this.add.text(W/2+(i-1)*190,H*0.55,d.label,{
+            const btn=this.add.text(W/2+(i-1)*(W*0.28),H*0.55,d.label,{
                 fontFamily:'monospace',fontSize:'20px',fontStyle:'bold',
                 color:d.color,backgroundColor:'#0a1428',padding:{x:18,y:10},stroke:'#000',strokeThickness:3
             }).setOrigin(0.5).setInteractive();
@@ -302,7 +300,7 @@ class GameScene extends Phaser.Scene {
         // Score
         this.scoreTxt=this.add.text(20,16,'SCORE: 0',{fontFamily:'monospace',fontSize:'20px',fontStyle:'bold',color:'#ddeeff',stroke:'#001133',strokeThickness:5}).setDepth(50);
         this.killTxt =this.add.text(20,42,'KILLS: 0',{fontFamily:'monospace',fontSize:'13px',color:'#ff9944',stroke:'#000',strokeThickness:3}).setDepth(50);
-        this.add.text(W-16,16,'UP Jump  X Attack',{fontFamily:'monospace',fontSize:'11px',color:'#334455',stroke:'#000',strokeThickness:2}).setOrigin(1,0).setDepth(50);
+        this.add.text(W-10,16,'UP Jump  X Attack',{fontFamily:'monospace',fontSize:'11px',color:'#334455',stroke:'#000',strokeThickness:2}).setOrigin(1,0).setDepth(50);
 
         // HP bar — static rectangles only
         this.add.text(20,62,'HP',{fontFamily:'monospace',fontSize:'12px',color:'#ff6666',stroke:'#000',strokeThickness:3}).setDepth(50);
@@ -322,14 +320,14 @@ class GameScene extends Phaser.Scene {
         this.streakTxt=this.add.text(W/2,H*0.28,'',{fontFamily:'monospace',fontSize:'24px',fontStyle:'bold',color:'#ff4444',stroke:'#000',strokeThickness:5}).setOrigin(0.5).setDepth(55).setAlpha(0);
 
         // Mobile buttons — plain text, no emoji
-        const jBtn=this.add.text(W-270,H-55,'JUMP',{fontFamily:'monospace',fontSize:'18px',color:'#88aadd',backgroundColor:'#09101e',padding:{x:14,y:10},stroke:'#1a3060',strokeThickness:2}).setDepth(50).setInteractive().setOrigin(0.5);
+        const jBtn=this.add.text(W*0.25,H-55,'JUMP',{fontFamily:'monospace',fontSize:'18px',color:'#88aadd',backgroundColor:'#09101e',padding:{x:14,y:10},stroke:'#1a3060',strokeThickness:2}).setDepth(50).setInteractive().setOrigin(0.5);
         jBtn.on('pointerdown',()=>{ SFX.resume(); this._doJump(); });
 
-        const aBtn=this.add.text(W-80,H-55,'ATTACK',{fontFamily:'monospace',fontSize:'18px',color:'#ff9944',backgroundColor:'#1a0800',padding:{x:14,y:10},stroke:'#aa4400',strokeThickness:2}).setDepth(50).setInteractive().setOrigin(0.5);
+        const aBtn=this.add.text(W*0.82,H-55,'ATTACK',{fontFamily:'monospace',fontSize:'18px',color:'#ff9944',backgroundColor:'#1a0800',padding:{x:14,y:10},stroke:'#aa4400',strokeThickness:2}).setDepth(50).setInteractive().setOrigin(0.5);
         aBtn.on('pointerdown',()=>{ SFX.resume(); this._doAttack(); this.tweens.add({targets:aBtn,scaleX:0.9,scaleY:0.9,duration:80,yoyo:true}); });
 
         // Mute
-        this.muteTxt=this.add.text(W-12,H-30,'[MUTE]',{fontFamily:'monospace',fontSize:'12px',color:'#334455',stroke:'#000',strokeThickness:2}).setOrigin(1,0).setDepth(50).setInteractive();
+        this.muteTxt=this.add.text(W-10,H-28,'[MUTE]',{fontFamily:'monospace',fontSize:'12px',color:'#334455',stroke:'#000',strokeThickness:2}).setOrigin(1,0).setDepth(50).setInteractive();
         this.muteTxt.on('pointerdown',()=>{ SFX.resume(); const m=SFX.toggleMute(); this.muteTxt.setText(m?'[UNMUTE]':'[MUTE]'); });
     }
 
@@ -696,17 +694,14 @@ class GameScene extends Phaser.Scene {
 // ─── LAUNCH ───────────────────────────────────────────────────────────────────
 new Phaser.Game({
     type: Phaser.AUTO,
-    width: W,
-    height: H,
     backgroundColor: '#020510',
     antialias: true,
+    width: W,
+    height: H,
     scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH,
+        mode: Phaser.Scale.NONE,
         width: W,
-        height: H,
-        parent: document.body,
-        expandParent: true
+        height: H
     },
     physics: { default:'arcade', arcade:{ gravity:{y:1800}, debug:false } },
     scene: [BootScene, TitleScene, GameScene]
