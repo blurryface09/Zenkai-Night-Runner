@@ -1,6 +1,9 @@
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
-const W              = window.innerWidth;
-const H              = window.innerHeight;
+// Use screen dimensions — works correctly on mobile Safari
+const W              = window.screen.width  * window.devicePixelRatio > 1200
+                         ? window.innerWidth : window.screen.width;
+const H              = window.screen.height * window.devicePixelRatio > 900
+                         ? window.innerHeight : window.screen.height;
 const GROUND_Y       = H - 100;
 const PLAYER_SCALE   = 0.42;
 const ENEMY_SCALE    = 0.42;
@@ -692,10 +695,19 @@ class GameScene extends Phaser.Scene {
 
 // ─── LAUNCH ───────────────────────────────────────────────────────────────────
 new Phaser.Game({
-    type:Phaser.AUTO,
-    width:W, height:H,
-    backgroundColor:'#020510',
-    antialias:true,
-    physics:{default:'arcade',arcade:{gravity:{y:1800},debug:false}},
-    scene:[BootScene,TitleScene,GameScene]
+    type: Phaser.AUTO,
+    width: W,
+    height: H,
+    backgroundColor: '#020510',
+    antialias: true,
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: W,
+        height: H,
+        parent: document.body,
+        expandParent: true
+    },
+    physics: { default:'arcade', arcade:{ gravity:{y:1800}, debug:false } },
+    scene: [BootScene, TitleScene, GameScene]
 });
