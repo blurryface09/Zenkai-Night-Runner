@@ -466,33 +466,37 @@ class GameScene extends Phaser.Scene {
 
     _enemyAttack(en){
         if(!this.alive||!en.active) return;
-        // Don't interrupt if already mid-attack
-        if(en._isAttacking) return;
-        const now=this.time.now;
-        if(!en._lastAtk||now-en._lastAtk>1400){
-            en._lastAtk    = now;
-            en._isAttacking = true;
-            const ak=en.isBoss?'b_attack':'e_attack', rk=en.isBoss?'b_run':'e_run';
-            en.play(ak, true);
+        const now = this.time.now;
+        const cooldown = en.isBoss ? 2000 : 1600;
+        if(en._lastAtk && now - en._lastAtk < cooldown) return;
+        en._lastAtk = now;
 
-            // Use a timer instead of animationcomplete — more reliable
-            const atkDur = en.isBoss ? (6/14)*1000+80 : (6/16)*1000+80;
-            this.time.delayedCall(atkDur, ()=>{
-                en._isAttacking = false;
-                if(en.active) en.play(rk, true);
-            });
+        const ak = en.isBoss ? 'b_attack' : 'e_attack';
+        const rk = en.isBoss ? 'b_run'    : 'e_run';
 
-            // Deal damage at midpoint of swing
-            this.time.delayedCall(300,()=>{
-                if(!this.alive||!en.active) return;
-                if(this.isAttacking||this.isBlocking){
-                    const b=this.add.text(this.player.x,this.player.y-80,'BLOCKED!',{fontFamily:'monospace',fontSize:'14px',color:'#44ffaa',stroke:'#000',strokeThickness:4}).setDepth(30);
-                    this.tweens.add({targets:b,y:b.y-35,alpha:0,duration:500,onComplete:()=>b.destroy()});
-                } else {
-                    this._takeDamage(1);
-                }
-            });
-        }
+        // Play attack animation
+        en.play(ak, true);
+
+        // Return to run after animation duration
+        const fps    = en.isBoss ? 14 : 16;
+        const atkDur = (6 / fps) * 1000 + 100;
+        this.time.delayedCall(atkDur, ()=>{
+            if(en && en.active) en.play(rk, true);
+        });
+
+        // Deal damage at midpoint
+        this.time.delayedCall(atkDur * 0.5, ()=>{
+            if(!this.alive || !en || !en.active) return;
+            if(this.isAttacking || this.isBlocking){
+                const b = this.add.text(
+                    this.player.x, this.player.y - 80, 'BLOCKED!',
+                    {fontFamily:'monospace',fontSize:'14px',color:'#44ffaa',stroke:'#000',strokeThickness:4}
+                ).setDepth(30);
+                this.tweens.add({targets:b, y:b.y-35, alpha:0, duration:500, onComplete:()=>b.destroy()});
+            } else {
+                this._takeDamage(1);
+            }
+        });
     }
 
     // ── ENEMY HP BARS — created once, updated cheaply ─────────────────────────
@@ -665,10 +669,11 @@ class GameScene extends Phaser.Scene {
             }
 
             if(this.combatLock&&en===this.activeEnemy){
-                const tx=this.player.x+(en.isBoss?150:120), dx=en.x-tx;
-                en.body.setVelocityX(dx>10?-85:dx<-10?85:0);
-                const atkR=en.isBoss?190:155;
-                if(dist<atkR) this._enemyAttack(en);
+                // Move toward combat position
+                const tx=this.player.x+(en.isBoss?160:130), dx=en.x-tx;
+                en.body.setVelocityX(dx>20?-80:dx<-20?80:0);
+                // Attack whenever in combat — no distance check needed
+                this._enemyAttack(en);
             } else if(!this.combatLock){
                 en.body.setVelocityX(-this.gameSpeed*0.75);
             }
