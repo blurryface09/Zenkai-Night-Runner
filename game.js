@@ -1,8 +1,8 @@
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
-// Fixed design resolution — Phaser Scale.FIT stretches to any screen
-const W        = 960;
-const H        = 540;
-const GROUND_Y = H - 80;
+// Portrait design — fits phones natively, PC gets letterbox
+const W        = 480;
+const H        = 854;
+const GROUND_Y = H - 90;
 const PLAYER_SCALE   = 0.42;
 const ENEMY_SCALE    = 0.42;
 const BOSS_SCALE     = 0.58;
@@ -124,7 +124,7 @@ class TitleScene extends Phaser.Scene {
             {label:'HARD',  color:'#ff4444',diff:'hard'},
         ];
         diffs.forEach((d,i)=>{
-            const btn=this.add.text(W/2+(i-1)*240,H*0.55,d.label,{
+            const btn=this.add.text(W/2+(i-1)*140,H*0.55,d.label,{
                 fontFamily:'monospace',fontSize:'20px',fontStyle:'bold',
                 color:d.color,backgroundColor:'#0a1428',padding:{x:18,y:10},stroke:'#000',strokeThickness:3
             }).setOrigin(0.5).setInteractive();
@@ -320,14 +320,14 @@ class GameScene extends Phaser.Scene {
         this.streakTxt=this.add.text(W/2,H*0.28,'',{fontFamily:'monospace',fontSize:'24px',fontStyle:'bold',color:'#ff4444',stroke:'#000',strokeThickness:5}).setOrigin(0.5).setDepth(55).setAlpha(0);
 
         // Mobile buttons — plain text, no emoji
-        const jBtn=this.add.text(180,H-40,'JUMP',{fontFamily:'monospace',fontSize:'18px',color:'#88aadd',backgroundColor:'#09101e',padding:{x:14,y:10},stroke:'#1a3060',strokeThickness:2}).setDepth(50).setInteractive().setOrigin(0.5);
+        const jBtn=this.add.text(110,H-50,'JUMP',{fontFamily:'monospace',fontSize:'18px',color:'#88aadd',backgroundColor:'#09101e',padding:{x:14,y:10},stroke:'#1a3060',strokeThickness:2}).setDepth(50).setInteractive().setOrigin(0.5);
         jBtn.on('pointerdown',()=>{ SFX.resume(); this._doJump(); });
 
-        const aBtn=this.add.text(W-140,H-40,'ATTACK',{fontFamily:'monospace',fontSize:'18px',color:'#ff9944',backgroundColor:'#1a0800',padding:{x:14,y:10},stroke:'#aa4400',strokeThickness:2}).setDepth(50).setInteractive().setOrigin(0.5);
+        const aBtn=this.add.text(W-100,H-50,'ATTACK',{fontFamily:'monospace',fontSize:'18px',color:'#ff9944',backgroundColor:'#1a0800',padding:{x:14,y:10},stroke:'#aa4400',strokeThickness:2}).setDepth(50).setInteractive().setOrigin(0.5);
         aBtn.on('pointerdown',()=>{ SFX.resume(); this._doAttack(); this.tweens.add({targets:aBtn,scaleX:0.9,scaleY:0.9,duration:80,yoyo:true}); });
 
         // Mute
-        this.muteTxt=this.add.text(W-10,H-18,'[MUTE]',{fontFamily:'monospace',fontSize:'12px',color:'#334455',stroke:'#000',strokeThickness:2}).setOrigin(1,0).setDepth(50).setInteractive();
+        this.muteTxt=this.add.text(W-8,H-22,'[MUTE]',{fontFamily:'monospace',fontSize:'12px',color:'#334455',stroke:'#000',strokeThickness:2}).setOrigin(1,0).setDepth(50).setInteractive();
         this.muteTxt.on('pointerdown',()=>{ SFX.resume(); const m=SFX.toggleMute(); this.muteTxt.setText(m?'[UNMUTE]':'[MUTE]'); });
     }
 
