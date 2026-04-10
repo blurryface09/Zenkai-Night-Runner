@@ -1,8 +1,8 @@
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
-// Portrait design — fits phones natively, PC gets letterbox
-const W        = 480;
-const H        = 854;
-const GROUND_Y = H - 90;
+// Responsive: fill the actual window on any device
+const W        = window.innerWidth;
+const H        = window.innerHeight;
+const GROUND_Y = H - Math.round(H * 0.1);
 const PLAYER_SCALE   = 0.42;
 const ENEMY_SCALE    = 0.42;
 const BOSS_SCALE     = 0.58;
@@ -124,7 +124,7 @@ class TitleScene extends Phaser.Scene {
             {label:'HARD',  color:'#ff4444',diff:'hard'},
         ];
         diffs.forEach((d,i)=>{
-            const btn=this.add.text(W/2+(i-1)*140,H*0.55,d.label,{
+            const btn=this.add.text(W/2+(i-1)*(W*0.3),H*0.55,d.label,{
                 fontFamily:'monospace',fontSize:'20px',fontStyle:'bold',
                 color:d.color,backgroundColor:'#0a1428',padding:{x:18,y:10},stroke:'#000',strokeThickness:3
             }).setOrigin(0.5).setInteractive();
@@ -320,14 +320,27 @@ class GameScene extends Phaser.Scene {
         this.streakTxt=this.add.text(W/2,H*0.28,'',{fontFamily:'monospace',fontSize:'24px',fontStyle:'bold',color:'#ff4444',stroke:'#000',strokeThickness:5}).setOrigin(0.5).setDepth(55).setAlpha(0);
 
         // Mobile buttons — plain text, no emoji
-        const jBtn=this.add.text(110,H-50,'JUMP',{fontFamily:'monospace',fontSize:'18px',color:'#88aadd',backgroundColor:'#09101e',padding:{x:14,y:10},stroke:'#1a3060',strokeThickness:2}).setDepth(50).setInteractive().setOrigin(0.5);
+        // Left button
+        const lBtn=this.add.text(W*0.08,H-H*0.06,'<',{fontFamily:'monospace',fontSize:'22px',color:'#88aadd',backgroundColor:'#09101e',padding:{x:14,y:10},stroke:'#1a3060',strokeThickness:2}).setDepth(50).setInteractive().setOrigin(0.5);
+        lBtn.on('pointerdown',()=>{ SFX.resume(); this._doLeft(); });
+        lBtn.on('pointerup',  ()=>{ this._stopMove(); });
+        lBtn.on('pointerout', ()=>{ this._stopMove(); });
+
+        // Jump button
+        const jBtn=this.add.text(W*0.27,H-H*0.06,'UP',{fontFamily:'monospace',fontSize:'18px',color:'#88aadd',backgroundColor:'#09101e',padding:{x:14,y:10},stroke:'#1a3060',strokeThickness:2}).setDepth(50).setInteractive().setOrigin(0.5);
         jBtn.on('pointerdown',()=>{ SFX.resume(); this._doJump(); });
 
-        const aBtn=this.add.text(W-100,H-50,'ATTACK',{fontFamily:'monospace',fontSize:'18px',color:'#ff9944',backgroundColor:'#1a0800',padding:{x:14,y:10},stroke:'#aa4400',strokeThickness:2}).setDepth(50).setInteractive().setOrigin(0.5);
+        // Right button
+        const rBtn=this.add.text(W*0.46,H-H*0.06,'>',{fontFamily:'monospace',fontSize:'22px',color:'#88aadd',backgroundColor:'#09101e',padding:{x:14,y:10},stroke:'#1a3060',strokeThickness:2}).setDepth(50).setInteractive().setOrigin(0.5);
+        rBtn.on('pointerdown',()=>{ SFX.resume(); this._doRight(); });
+        rBtn.on('pointerup',  ()=>{ this._stopMove(); });
+        rBtn.on('pointerout', ()=>{ this._stopMove(); });
+
+        const aBtn=this.add.text(W*0.85,H-H*0.06,'ATTACK',{fontFamily:'monospace',fontSize:'18px',color:'#ff9944',backgroundColor:'#1a0800',padding:{x:14,y:10},stroke:'#aa4400',strokeThickness:2}).setDepth(50).setInteractive().setOrigin(0.5);
         aBtn.on('pointerdown',()=>{ SFX.resume(); this._doAttack(); this.tweens.add({targets:aBtn,scaleX:0.9,scaleY:0.9,duration:80,yoyo:true}); });
 
         // Mute
-        this.muteTxt=this.add.text(W-8,H-22,'[MUTE]',{fontFamily:'monospace',fontSize:'12px',color:'#334455',stroke:'#000',strokeThickness:2}).setOrigin(1,0).setDepth(50).setInteractive();
+        this.muteTxt=this.add.text(W-10,H*0.97,'[MUTE]',{fontFamily:'monospace',fontSize:'12px',color:'#334455',stroke:'#000',strokeThickness:2}).setOrigin(1,0).setDepth(50).setInteractive();
         this.muteTxt.on('pointerdown',()=>{ SFX.resume(); const m=SFX.toggleMute(); this.muteTxt.setText(m?'[UNMUTE]':'[MUTE]'); });
     }
 
@@ -344,6 +357,23 @@ class GameScene extends Phaser.Scene {
         this.pKey   =this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
         this.escKey =this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
         this.input.keyboard.once('keydown',()=>SFX.resume());
+    }
+
+    _doLeft(){
+        if(!this.alive||this.isAttacking) return;
+        this.player.setVelocityX(-220);
+        this.player.setFlipX(true);
+    }
+
+    _doRight(){
+        if(!this.alive||this.isAttacking) return;
+        this.player.setVelocityX(220);
+        this.player.setFlipX(false);
+    }
+
+    _stopMove(){
+        if(this.player.body.blocked.down&&!this.isAttacking&&!this.isJumping)
+            this.player.setVelocityX(0);
     }
 
     // ── ACTIONS ───────────────────────────────────────────────────────────────
@@ -363,7 +393,12 @@ class GameScene extends Phaser.Scene {
         this.time.delayedCall(150,()=>{
             this.enemies.getChildren().forEach(en=>{
                 if(!en.active) return;
-                if(Phaser.Math.Distance.Between(this.player.x,this.player.y,en.x,en.y)<180) this._hitEnemy(en);
+                // Use X distance only — more reliable for side-scrollers
+                // Boss is bigger so needs wider range
+                const hitRange = en.isBoss ? 320 : 200;
+                const xDist = Math.abs(this.player.x - en.x);
+                const yDist = Math.abs(this.player.y - en.y);
+                if(xDist < hitRange && yDist < 200) this._hitEnemy(en);
             });
         });
         if(this._aTimer) this._aTimer.remove();
@@ -560,7 +595,7 @@ class GameScene extends Phaser.Scene {
         boss.hp    = mhp;
         boss.maxHp = mhp;
         boss.isBoss = true;
-        boss.body.setSize(160, 290).setOffset(105, 55);
+        boss.body.setSize(220, 320).setOffset(80, 40);
         boss.body.setAllowGravity(true);
         boss.body.setVelocityX(-this.gameSpeed * 0.45);
         this.physics.add.collider(boss, this.ground);
@@ -638,6 +673,10 @@ class GameScene extends Phaser.Scene {
         // Input
         if(Phaser.Input.Keyboard.JustDown(this.cursors.up)) this._doJump();
         if(Phaser.Input.Keyboard.JustDown(this.xKey))       this._doAttack();
+        // Left / Right movement
+        if(this.cursors.left.isDown)        this._doLeft();
+        else if(this.cursors.right.isDown)  this._doRight();
+        else                                this._stopMove();
 
         // Auto run
         if(this.player.body.blocked.down&&!this.isJumping&&!this.isAttacking)
@@ -712,12 +751,11 @@ new Phaser.Game({
     type: Phaser.AUTO,
     backgroundColor: '#020510',
     antialias: true,
+    width: W,
+    height: H,
     scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: W,
-        height: H,
-        parent: document.body
+        mode: Phaser.Scale.RESIZE,
+        autoCenter: Phaser.Scale.CENTER_BOTH
     },
     physics: { default:'arcade', arcade:{ gravity:{y:1800}, debug:false } },
     scene: [BootScene, TitleScene, GameScene]
