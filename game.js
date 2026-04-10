@@ -267,7 +267,7 @@ class GameScene extends Phaser.Scene {
         keys.forEach(k=>{ if(this.anims.exists(k)) this.anims.remove(k); });
         const mk=(key,tex,s,e,fps,rep)=>
             this.anims.create({key,frameRate:fps,repeat:rep,frames:this.anims.generateFrameNumbers(tex,{start:s,end:e})});
-        mk('run',   'ninja',0,5, 14,-1); mk('jump',   'ninja',6,11,13,0); mk('attack','ninja',18,23,18,0);
+        mk('run',   'ninja',0,5, 14,-1); mk('jump',   'ninja',6,11,13,0); mk('attack','ninja',12,17,18,0);
         mk('e_run', 'enemy',0,5, 14,-1); mk('e_attack','enemy',18,23,16,0);
         mk('b_run', 'boss', 0,5, 12,-1); mk('b_attack','boss', 18,23,14,0);
     }
