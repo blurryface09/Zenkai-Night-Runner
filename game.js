@@ -267,9 +267,9 @@ class GameScene extends Phaser.Scene {
         keys.forEach(k=>{ if(this.anims.exists(k)) this.anims.remove(k); });
         const mk=(key,tex,s,e,fps,rep)=>
             this.anims.create({key,frameRate:fps,repeat:rep,frames:this.anims.generateFrameNumbers(tex,{start:s,end:e})});
-        mk('run',   'ninja',0,5, 14,-1); mk('jump',   'ninja',6,11,13,0); mk('attack','ninja',12,17,18,0);
-        mk('e_run', 'enemy',0,5, 14,-1); mk('e_attack','enemy',18,23,16,0);
-        mk('b_run', 'boss', 0,5, 12,-1); mk('b_attack','boss', 18,23,14,0);
+        mk('run',    'ninja',0,5,  14,-1); mk('jump',    'ninja',6,11, 13,0); mk('attack',  'ninja',12,17,18,0);
+        mk('e_run',  'enemy',0,5,  14,-1); mk('e_attack','enemy',12,17, 16,0);
+        mk('b_run',  'boss', 0,5,  12,-1); mk('b_attack','boss', 12,17, 14,0);
     }
 
     // ── PLAYER ────────────────────────────────────────────────────────────────
@@ -466,12 +466,23 @@ class GameScene extends Phaser.Scene {
 
     _enemyAttack(en){
         if(!this.alive||!en.active) return;
+        // Don't interrupt if already mid-attack
+        if(en._isAttacking) return;
         const now=this.time.now;
         if(!en._lastAtk||now-en._lastAtk>1400){
-            en._lastAtk=now;
+            en._lastAtk    = now;
+            en._isAttacking = true;
             const ak=en.isBoss?'b_attack':'e_attack', rk=en.isBoss?'b_run':'e_run';
-            en.play(ak,true);
-            en.once('animationcomplete-'+ak,()=>{ if(en.active) en.play(rk,true); });
+            en.play(ak, true);
+
+            // Use a timer instead of animationcomplete — more reliable
+            const atkDur = en.isBoss ? (6/14)*1000+80 : (6/16)*1000+80;
+            this.time.delayedCall(atkDur, ()=>{
+                en._isAttacking = false;
+                if(en.active) en.play(rk, true);
+            });
+
+            // Deal damage at midpoint of swing
             this.time.delayedCall(300,()=>{
                 if(!this.alive||!en.active) return;
                 if(this.isAttacking||this.isBlocking){
