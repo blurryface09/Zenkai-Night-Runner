@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -17,16 +17,20 @@
       touch-action: none;
       -webkit-user-select: none;
       user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     canvas {
       display: block;
-      width: 100vw !important;
-      height: 100vh !important;
+      max-width: 100%;
+      max-height: 100%;
     }
   </style>
 </head>
 <body>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.60.0/phaser.min.js"></script>
-  <script src="game.js"></script>
+  <!-- v6 -->
+  <script src="game.js?v=6"></script>
 </body>
 </html>
