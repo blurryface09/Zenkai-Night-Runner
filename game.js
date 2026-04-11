@@ -300,7 +300,7 @@ class GameScene extends Phaser.Scene {
         // Score
         this.scoreTxt=this.add.text(20,16,'SCORE: 0',{fontFamily:'monospace',fontSize:'20px',fontStyle:'bold',color:'#ddeeff',stroke:'#001133',strokeThickness:5}).setDepth(50);
         this.killTxt =this.add.text(20,42,'KILLS: 0',{fontFamily:'monospace',fontSize:'13px',color:'#ff9944',stroke:'#000',strokeThickness:3}).setDepth(50);
-        this.add.text(W-10,16,'UP Jump  X Attack',{fontFamily:'monospace',fontSize:'11px',color:'#334455',stroke:'#000',strokeThickness:2}).setOrigin(1,0).setDepth(50);
+        this.add.text(W-10,16,'UP Jump   X Attack',{fontFamily:'monospace',fontSize:'11px',color:'#334455',stroke:'#000',strokeThickness:2}).setOrigin(1,0).setDepth(50);
 
         // HP bar — static rectangles only
         this.add.text(20,62,'HP',{fontFamily:'monospace',fontSize:'12px',color:'#ff6666',stroke:'#000',strokeThickness:3}).setDepth(50);
@@ -320,21 +320,9 @@ class GameScene extends Phaser.Scene {
         this.streakTxt=this.add.text(W/2,H*0.28,'',{fontFamily:'monospace',fontSize:'24px',fontStyle:'bold',color:'#ff4444',stroke:'#000',strokeThickness:5}).setOrigin(0.5).setDepth(55).setAlpha(0);
 
         // Mobile buttons — plain text, no emoji
-        // Left button
-        const lBtn=this.add.text(W*0.08,H-H*0.06,'<',{fontFamily:'monospace',fontSize:'22px',color:'#88aadd',backgroundColor:'#09101e',padding:{x:14,y:10},stroke:'#1a3060',strokeThickness:2}).setDepth(50).setInteractive().setOrigin(0.5);
-        lBtn.on('pointerdown',()=>{ SFX.resume(); this._doLeft(); });
-        lBtn.on('pointerup',  ()=>{ this._stopMove(); });
-        lBtn.on('pointerout', ()=>{ this._stopMove(); });
-
-        // Jump button
-        const jBtn=this.add.text(W*0.27,H-H*0.06,'UP',{fontFamily:'monospace',fontSize:'18px',color:'#88aadd',backgroundColor:'#09101e',padding:{x:14,y:10},stroke:'#1a3060',strokeThickness:2}).setDepth(50).setInteractive().setOrigin(0.5);
+        // JUMP button — left side
+        const jBtn=this.add.text(W*0.25,H-H*0.06,'JUMP',{fontFamily:'monospace',fontSize:'20px',fontStyle:'bold',color:'#88aadd',backgroundColor:'#09101e',padding:{x:22,y:14},stroke:'#1a3060',strokeThickness:2}).setDepth(50).setInteractive().setOrigin(0.5);
         jBtn.on('pointerdown',()=>{ SFX.resume(); this._doJump(); });
-
-        // Right button
-        const rBtn=this.add.text(W*0.46,H-H*0.06,'>',{fontFamily:'monospace',fontSize:'22px',color:'#88aadd',backgroundColor:'#09101e',padding:{x:14,y:10},stroke:'#1a3060',strokeThickness:2}).setDepth(50).setInteractive().setOrigin(0.5);
-        rBtn.on('pointerdown',()=>{ SFX.resume(); this._doRight(); });
-        rBtn.on('pointerup',  ()=>{ this._stopMove(); });
-        rBtn.on('pointerout', ()=>{ this._stopMove(); });
 
         const aBtn=this.add.text(W*0.85,H-H*0.06,'ATTACK',{fontFamily:'monospace',fontSize:'18px',color:'#ff9944',backgroundColor:'#1a0800',padding:{x:14,y:10},stroke:'#aa4400',strokeThickness:2}).setDepth(50).setInteractive().setOrigin(0.5);
         aBtn.on('pointerdown',()=>{ SFX.resume(); this._doAttack(); this.tweens.add({targets:aBtn,scaleX:0.9,scaleY:0.9,duration:80,yoyo:true}); });
@@ -359,22 +347,6 @@ class GameScene extends Phaser.Scene {
         this.input.keyboard.once('keydown',()=>SFX.resume());
     }
 
-    _doLeft(){
-        if(!this.alive||this.isAttacking) return;
-        this.player.setVelocityX(-220);
-        this.player.setFlipX(true);
-    }
-
-    _doRight(){
-        if(!this.alive||this.isAttacking) return;
-        this.player.setVelocityX(220);
-        this.player.setFlipX(false);
-    }
-
-    _stopMove(){
-        if(this.player.body.blocked.down&&!this.isAttacking&&!this.isJumping)
-            this.player.setVelocityX(0);
-    }
 
     // ── ACTIONS ───────────────────────────────────────────────────────────────
     _doJump(){
@@ -673,10 +645,7 @@ class GameScene extends Phaser.Scene {
         // Input
         if(Phaser.Input.Keyboard.JustDown(this.cursors.up)) this._doJump();
         if(Phaser.Input.Keyboard.JustDown(this.xKey))       this._doAttack();
-        // Left / Right movement
-        if(this.cursors.left.isDown)        this._doLeft();
-        else if(this.cursors.right.isDown)  this._doRight();
-        else                                this._stopMove();
+
 
         // Auto run
         if(this.player.body.blocked.down&&!this.isJumping&&!this.isAttacking)
